@@ -1,5 +1,15 @@
 import { apiClient } from "./client"
 import { serverApiClient } from "./server-client"
+// Import server-side DB functions
+import {
+  createOrdenDB,
+  getOrdenDB,
+  getOrdenesDB,
+  updateOrdenDB,
+  deleteOrdenDB,
+  asignarTecnicoDB,
+  cambiarEstadoDB,
+} from "@/lib/db/ordenes-trabajo"
 
 export interface OrdenTrabajo {
   id: number
@@ -18,7 +28,6 @@ export interface OrdenTrabajo {
   horasTrabajadas?: number
   costoRepuestos?: number
   costoTotal?: number
-  observaciones?: string
   createdAt?: string
   updatedAt?: string
 }
@@ -92,22 +101,26 @@ function transformOrdenToAPI(orden: Partial<OrdenTrabajo>): any {
   }
 
   const normalized: any = {
-    numero_orden: orden.numeroOrden,
     equipo_id: orden.equipoId,
     tipo: tipo,
     prioridad: prioridad,
-    estado: estado,
     descripcion: orden.descripcion,
-    asignado_a: orden.tecnicoAsignadoId,
-    fecha_solicitud: orden.fechaCreacion,
-    fecha_inicio: orden.fechaInicio,
-    fecha_finalizacion: orden.fechaFinalizacion,
-    tiempo_real: orden.horasTrabajadas,
-    costo_estimado: orden.costoRepuestos,
-    costo_real: orden.costoTotal,
-    notas: orden.observaciones,
+    asignado_a: orden.tecnicoAsignadoId || undefined,
+    // Optional fields - map fechaCreacion to fecha_programada
+    ...(orden.fechaCreacion && { fecha_programada: orden.fechaCreacion }),
+    // Include fecha_inicio only if it's not undefined or null (allow empty string)
+    ...(orden.fechaInicio !== undefined && orden.fechaInicio !== null ? { fecha_inicio: orden.fechaInicio || null } : {}),
+    // Include fecha_finalizacion only if it's not undefined or null (allow empty string)
+    ...(orden.fechaFinalizacion !== undefined && orden.fechaFinalizacion !== null ? { fecha_finalizacion: orden.fechaFinalizacion || null } : {}),
+    ...(orden.horasTrabajadas !== undefined && orden.horasTrabajadas !== null && { tiempo_estimado: orden.horasTrabajadas }),
+    ...(orden.costoRepuestos !== undefined && orden.costoRepuestos !== null && { costo_estimado: orden.costoRepuestos }),
+    // Include costo_real only if it's not undefined or null (allow empty string)
+    ...(orden.costoTotal !== undefined && orden.costoTotal !== null ? { costo_real: orden.costoTotal || null } : {}),
+    // For updates only, include estado
+    ...(orden.id && { estado: estado }),
   }
 
+  // Remove undefined values
   Object.keys(normalized).forEach((key) => {
     if (normalized[key] === undefined || normalized[key] === null || normalized[key] === "") {
       delete normalized[key]
@@ -122,9 +135,30 @@ function transformOrdenToAPI(orden: Partial<OrdenTrabajo>): any {
 const isServer = typeof window === "undefined"
 
 export async function getOrdenesTrabajo(filters?: OrdenesTrabajoFilters): Promise<OrdenesTrabajoResponse> {
-  const client = isServer ? serverApiClient : apiClient
-
   console.log("[v0] getOrdenesTrabajo - Building request with filters:", filters)
+
+  // If on server side, use direct DB call
+  if (typeof window === 'undefined') {
+    console.log("[v0] getOrdenesTrabajo - Using server DB function")
+    try {
+      const result = await getOrdenesDB(filters)
+      console.log("[v0] getOrdenesTrabajo - DB result:", result)
+      return result
+    } catch (error) {
+      console.error("[v0] getOrdenesTrabajo - DB Error:", error)
+      // Return fallback response instead of throwing
+      return {
+        data: [],
+        total: 0,
+        currentPage: filters?.page || 1,
+        lastPage: 1,
+        perPage: filters?.perPage || 10,
+      }
+    }
+  }
+
+  // If on client side, use API client
+  const client = apiClient
 
   const params = new URLSearchParams()
 
@@ -214,12 +248,25 @@ export async function getOrdenTrabajo(id: number): Promise<OrdenTrabajo> {
 }
 
 export async function createOrdenTrabajo(orden: Partial<OrdenTrabajo>): Promise<OrdenTrabajo> {
-  const client = isServer ? serverApiClient : apiClient
-
   console.log("[v0] createOrdenTrabajo - Input data:", orden)
   const transformedData = transformOrdenToAPI(orden)
   console.log("[v0] createOrdenTrabajo - Sending to API:", transformedData)
 
+  // If on server side, use direct DB call
+  if (typeof window === 'undefined') {
+    console.log("[v0] createOrdenTrabajo - Using server DB function")
+    try {
+      const result = await createOrdenDB(transformedData)
+      console.log("[v0] createOrdenTrabajo - DB response:", result)
+      return result
+    } catch (error) {
+      console.error("[v0] createOrdenTrabajo - DB Error:", error)
+      throw error
+    }
+  }
+
+  // If on client side, use API client
+  const client = apiClient
   const response = await client.post<any>("/ordenes", transformedData)
   console.log("[v0] createOrdenTrabajo - API response:", response)
 
@@ -227,18 +274,44 @@ export async function createOrdenTrabajo(orden: Partial<OrdenTrabajo>): Promise<
 }
 
 export async function updateOrdenTrabajo(id: number, orden: Partial<OrdenTrabajo>): Promise<OrdenTrabajo> {
-  const client = isServer ? serverApiClient : apiClient
+  const transformedData = transformOrdenToAPI(orden)
 
-  const response = await client.put<any>(`/ordenes/${id}`, transformOrdenToAPI(orden))
+  // If on server side, use direct DB call
+  if (typeof window === 'undefined') {
+    console.log("[v0] updateOrdenTrabajo - Using server DB function")
+    try {
+      const result = await updateOrdenDB(id, transformedData)
+      return result
+    } catch (error) {
+      console.error("[v0] updateOrdenTrabajo - DB Error:", error)
+      throw error
+    }
+  }
+
+  // If on client side, use API client
+  const response = await apiClient.put<any>(`/ordenes/${id}`, transformedData)
   return transformOrdenFromAPI(response)
 }
 
 export async function deleteOrdenTrabajo(id: number): Promise<boolean> {
-  const client = isServer ? serverApiClient : apiClient
-
   console.log("[v0] deleteOrdenTrabajo - Attempting to delete orden with id:", id)
+
+  // If on server side, use direct DB call
+  if (typeof window === 'undefined') {
+    console.log("[v0] deleteOrdenTrabajo - Using server DB function")
+    try {
+      const result = await deleteOrdenDB(id)
+      console.log("[v0] deleteOrdenTrabajo - Deletion successful:", result)
+      return result
+    } catch (error: any) {
+      console.error("[v0] deleteOrdenTrabajo - DB Error:", error)
+      throw error
+    }
+  }
+
+  // If on client side, use API client
   try {
-    const response = await client.delete<any>(`/ordenes/${id}`)
+    const response = await apiClient.delete<any>(`/ordenes/${id}`)
     console.log("[v0] deleteOrdenTrabajo - Raw API response:", JSON.stringify(response, null, 2))
 
     const wasSuccessful = response?.success === true || response?.message !== undefined
@@ -258,11 +331,23 @@ export async function deleteOrdenTrabajo(id: number): Promise<boolean> {
 }
 
 export async function asignarTecnico(ordenId: number, tecnicoId: number): Promise<OrdenTrabajo> {
-  const client = isServer ? serverApiClient : apiClient
-
   console.log("[v0] asignarTecnico - ordenId:", ordenId, "tecnicoId:", tecnicoId)
 
-  const response = await client.post<any>(`/ordenes/${ordenId}/asignar-tecnico`, {
+  // If on server side, use direct DB call
+  if (typeof window === 'undefined') {
+    console.log("[v0] asignarTecnico - Using server DB function")
+    try {
+      const result = await asignarTecnicoDB(ordenId, tecnicoId)
+      console.log("[v0] asignarTecnico - Response:", result)
+      return result
+    } catch (error) {
+      console.error("[v0] asignarTecnico - DB Error:", error)
+      throw error
+    }
+  }
+
+  // If on client side, use API client
+  const response = await apiClient.post<any>(`/ordenes/${ordenId}/asignar-tecnico`, {
     tecnico_id: tecnicoId,
   })
 
@@ -275,13 +360,25 @@ export async function cambiarEstado(
   nuevoEstado: string,
   observaciones?: string,
 ): Promise<OrdenTrabajo> {
-  const client = isServer ? serverApiClient : apiClient
-
   console.log("[v0] cambiarEstado - ordenId:", ordenId, "estado:", nuevoEstado, "observaciones:", observaciones)
 
   const estadoTransformado = nuevoEstado.toLowerCase().replace(/\s+/g, "_")
 
-  const response = await client.post<any>(`/ordenes/${ordenId}/cambiar-estado`, {
+  // If on server side, use direct DB call
+  if (typeof window === 'undefined') {
+    console.log("[v0] cambiarEstado - Using server DB function")
+    try {
+      const result = await cambiarEstadoDB(ordenId, estadoTransformado, observaciones)
+      console.log("[v0] cambiarEstado - Response:", result)
+      return result
+    } catch (error) {
+      console.error("[v0] cambiarEstado - DB Error:", error)
+      throw error
+    }
+  }
+
+  // If on client side, use API client
+  const response = await apiClient.post<any>(`/ordenes/${ordenId}/cambiar-estado`, {
     estado: estadoTransformado,
     observaciones,
   })

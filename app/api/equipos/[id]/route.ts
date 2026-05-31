@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAuth()
+    await requireAuth(request)
     const { id } = await params
     
     const equipo = await prisma.equipo.findUnique({
@@ -76,7 +76,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requireAuth()
+    const session = await requireAuth(request)
     const { id } = await params
     const body = await request.json()
     
@@ -137,9 +137,9 @@ export async function PUT(
     await prisma.log.create({
       data: {
         usuario_id: session.id,
-        accion: 'actualizar',
-        modulo: 'equipos',
-        descripcion: `Equipo actualizado: ${equipo.nombre}`,
+        accion: 'Editar',
+        modulo: 'Equipos',
+        descripcion: `Equipo actualizado: ${equipo.nombre} (Código: ${equipo.codigo})`,
         datos: { equipo_id: equipo.id },
       },
     })
@@ -160,7 +160,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await requireAuth()
+    const session = await requireAuth(request)
     const { id } = await params
     
     const equipo = await prisma.equipo.findUnique({
@@ -182,9 +182,9 @@ export async function DELETE(
     await prisma.log.create({
       data: {
         usuario_id: session.id,
-        accion: 'eliminar',
-        modulo: 'equipos',
-        descripcion: `Equipo eliminado: ${equipo.nombre}`,
+        accion: 'Eliminar',
+        modulo: 'Equipos',
+        descripcion: `Equipo eliminado: ${equipo.nombre} (Código: ${equipo.codigo})`,
         datos: { equipo_id: equipo.id },
       },
     })
