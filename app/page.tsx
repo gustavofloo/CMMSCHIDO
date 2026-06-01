@@ -1116,18 +1116,6 @@ export default function DashboardPage() {
     setOrderCurrentPage(1)
   }, [orderFilters, searchOrder])
 
-  // Sync total pages for orders with current data
-  useEffect(() => {
-    const totalRecords = filteredOrders.length
-    const newTotalPages = totalRecords === 0 ? 1 : Math.ceil(totalRecords / orderPerPage)
-    setOrderTotalPages(newTotalPages)
-    
-    // Reset to page 1 if current page exceeds total pages
-    if (orderCurrentPage > newTotalPages) {
-      setOrderCurrentPage(1)
-    }
-  }, [filteredOrders.length, orderPerPage, orderCurrentPage])
-
   // Load users when entering the 'tecnicos' section.
   useEffect(() => {
     if (activeSection === "tecnicos") {
@@ -1472,6 +1460,18 @@ export default function DashboardPage() {
   }
 
   const filteredOrders = workOrders
+
+  // Sync total pages for orders with current data
+  useEffect(() => {
+    const totalRecords = filteredOrders.length
+    const newTotalPages = totalRecords === 0 ? 1 : Math.ceil(totalRecords / orderPerPage)
+    setOrderTotalPages(newTotalPages)
+    
+    // Reset to page 1 if current page exceeds total pages
+    if (orderCurrentPage > newTotalPages) {
+      setOrderCurrentPage(1)
+    }
+  }, [filteredOrders.length, orderPerPage, orderCurrentPage, setOrderTotalPages, setOrderCurrentPage])
 
   const renderOrdenes = () => {
     const totalRecords = filteredOrders.length
