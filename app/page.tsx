@@ -2337,45 +2337,13 @@ export default function DashboardPage() {
   }
 
   const getFilteredEquipment = useMemo(() => {
-    // First, filter by the selected filters
-    const filtered = equipment.filter((eq) => {
-      const matchesEstado = equipmentFilters.estado === "all" || eq.estado === equipmentFilters.estado
-      const matchesUbicacion = equipmentFilters.ubicacion === "all" || eq.ubicacion === equipmentFilters.ubicacion
-      const matchesFabricante = equipmentFilters.fabricante === "all" || eq.fabricante === equipmentFilters.fabricante
-      return matchesEstado && matchesUbicacion && matchesFabricante
-    })
-
-    // Then, apply search term
-    const searched = searchTerm
-      ? filtered.filter(
-          (eq) =>
-            eq.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            eq.numeroSerie.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            eq.modelo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            eq.fabricante.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            eq.ubicacion.toLowerCase().includes(searchTerm.toLowerCase()),
-        )
-      : filtered
-
-    // Apply pagination
-    const startIndex = (currentPage - 1) * perPage
-    const endIndex = startIndex + perPage
-    const paginated = searched.slice(startIndex, endIndex)
-
-    // Return both the paginated results and the total count
+    // Equipment is already paginated and filtered from the server
+    // Just return the items as-is
     return {
-      items: paginated,
-      total: searched.length,
+      items: equipment,
+      total: totalEquipment,
     }
-  }, [equipment, equipmentFilters, searchTerm, currentPage, perPage])
-
-  useEffect(() => {
-    if (getFilteredEquipment && typeof getFilteredEquipment.total === "number") {
-      setTotalEquipment(getFilteredEquipment.total)
-    } else {
-      setTotalEquipment(0)
-    }
-  }, [getFilteredEquipment])
+  }, [equipment, totalEquipment])
 
   const getStatusColor = (estado: string) => {
     if (!estado) {
