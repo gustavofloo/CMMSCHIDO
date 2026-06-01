@@ -609,10 +609,11 @@ export default function DashboardPage() {
         3 * 60 * 1000 // 3 minute cache
       )
       
+      console.log("[v0] loadEquipment - Full response:", response)
       const transformedEquipment = response.data.map(transformEquipoToEquipment)
       setEquipment(transformedEquipment)
       setTotalEquipment(response.total)
-      console.log("[v0] loadEquipment - Successfully loaded", transformedEquipment.length, "items")
+      console.log("[v0] loadEquipment - Successfully loaded", transformedEquipment.length, "items, totalEquipment set to", response.total)
     } catch (error) {
       console.error("[v0] loadEquipment - Error:", error)
       // If it fails, use mock data as a fallback
@@ -716,7 +717,7 @@ export default function DashboardPage() {
   // Re-load equipment data when pagination or filters change
   useEffect(() => {
     if (activeSection === "equipos") {
-      console.log("[v0] Equipment pagination changed - reloading data", { currentPage, perPage })
+      console.log("[v0] Equipment pagination changed - reloading data", { currentPage, perPage, activeSection })
       loadEquipment()
     }
   }, [currentPage, perPage, equipmentFilters, searchTerm, activeSection, loadEquipment])
@@ -3691,7 +3692,9 @@ export default function DashboardPage() {
                 size="sm"
                 disabled={currentPage >= Math.ceil(totalEquipment / perPage) || totalEquipment === 0}
                 onClick={() => {
+                  console.log("[v0] Siguiente button clicked", { currentPage, totalEquipment, perPage, maxPage: Math.ceil(totalEquipment / perPage) })
                   if (currentPage < Math.ceil(totalEquipment / perPage)) {
+                    console.log("[v0] Incrementing page from", currentPage, "to", currentPage + 1)
                     setCurrentPage(currentPage + 1)
                   }
                 }}
