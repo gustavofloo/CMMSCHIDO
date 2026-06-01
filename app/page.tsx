@@ -713,6 +713,14 @@ export default function DashboardPage() {
     }
   }, [activeSection, loadEquipment])
 
+  // Re-load equipment data when pagination or filters change
+  useEffect(() => {
+    if (activeSection === "equipos") {
+      console.log("[v0] Equipment pagination changed - reloading data", { currentPage, perPage })
+      loadEquipment()
+    }
+  }, [currentPage, perPage, equipmentFilters, searchTerm, activeSection, loadEquipment])
+
   // Initial load of work orders data when the component mounts.
   useEffect(() => {
     console.log("[v0] Component mounted - loading initial work orders")
