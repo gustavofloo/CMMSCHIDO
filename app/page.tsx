@@ -1787,7 +1787,11 @@ export default function DashboardPage() {
                   variant="outline"
                   size="sm"
                   disabled={orderCurrentPage === 1}
-                  onClick={() => setOrderCurrentPage(orderCurrentPage - 1)}
+                  onClick={() => {
+                    if (orderCurrentPage > 1) {
+                      setOrderCurrentPage(orderCurrentPage - 1)
+                    }
+                  }}
                 >
                   Anterior
                 </Button>
@@ -1821,7 +1825,11 @@ export default function DashboardPage() {
                   variant="outline"
                   size="sm"
                   disabled={orderCurrentPage === totalPages}
-                  onClick={() => setOrderCurrentPage(orderCurrentPage + 1)}
+                  onClick={() => {
+                    if (orderCurrentPage < totalPages) {
+                      setOrderCurrentPage(orderCurrentPage + 1)
+                    }
+                  }}
                 >
                   Siguiente
                 </Button>
@@ -3655,7 +3663,11 @@ export default function DashboardPage() {
                 variant="outline"
                 size="sm"
                 disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
+                onClick={() => {
+                  if (currentPage > 1) {
+                    setCurrentPage(currentPage - 1)
+                  }
+                }}
               >
                 Anterior
               </Button>
@@ -3666,7 +3678,11 @@ export default function DashboardPage() {
                 variant="outline"
                 size="sm"
                 disabled={currentPage >= Math.ceil(totalEquipment / perPage) || totalEquipment === 0}
-                onClick={() => setCurrentPage(currentPage + 1)}
+                onClick={() => {
+                  if (currentPage < Math.ceil(totalEquipment / perPage)) {
+                    setCurrentPage(currentPage + 1)
+                  }
+                }}
               >
                 Siguiente
               </Button>
@@ -4211,7 +4227,11 @@ export default function DashboardPage() {
                   variant="outline"
                   size="sm"
                   disabled={usersPaginaActual === 1}
-                  onClick={() => setUsersPaginaActual(usersPaginaActual - 1)}
+                  onClick={() => {
+                    if (usersPaginaActual > 1) {
+                      setUsersPaginaActual(usersPaginaActual - 1)
+                    }
+                  }}
                 >
                   Anterior
                 </Button>
@@ -4245,7 +4265,11 @@ export default function DashboardPage() {
                   variant="outline"
                   size="sm"
                   disabled={usersPaginaActual === totalPages}
-                  onClick={() => setUsersPaginaActual(usersPaginaActual + 1)}
+                  onClick={() => {
+                    if (usersPaginaActual < totalPages) {
+                      setUsersPaginaActual(usersPaginaActual + 1)
+                    }
+                  }}
                 >
                   Siguiente
                 </Button>
