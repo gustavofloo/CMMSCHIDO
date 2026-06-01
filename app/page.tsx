@@ -1116,6 +1116,18 @@ export default function DashboardPage() {
     setOrderCurrentPage(1)
   }, [orderFilters, searchOrder])
 
+  // Sync total pages for orders with current data
+  useEffect(() => {
+    const totalRecords = filteredOrders.length
+    const newTotalPages = totalRecords === 0 ? 1 : Math.ceil(totalRecords / orderPerPage)
+    setOrderTotalPages(newTotalPages)
+    
+    // Reset to page 1 if current page exceeds total pages
+    if (orderCurrentPage > newTotalPages) {
+      setOrderCurrentPage(1)
+    }
+  }, [filteredOrders.length, orderPerPage, orderCurrentPage])
+
   // Load users when entering the 'tecnicos' section.
   useEffect(() => {
     if (activeSection === "tecnicos") {
@@ -1468,14 +1480,6 @@ export default function DashboardPage() {
     const endIndex = Math.min(startIndex + orderPerPage, totalRecords)
     const paginatedOrders = filteredOrders.slice(startIndex, endIndex)
 
-    // Moved useEffect for pagination logic to the top level
-    // useEffect(() => {
-    //   setOrderTotalPages(totalPages)
-    //   if (orderCurrentPage > totalPages && totalPages > 0) {
-    //     setOrderCurrentPage(1)
-    //   }
-    // }, [totalRecords, orderPerPage, totalPages, orderCurrentPage, setOrderTotalPages, setOrderCurrentPage])
-
     return (
       <div className="flex flex-col gap-6">
         {/* Header */}
@@ -1796,14 +1800,14 @@ export default function DashboardPage() {
                   Anterior
                 </Button>
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  {Array.from({ length: Math.min(orderTotalPages, 5) }, (_, i) => {
                     let pageNum
-                    if (totalPages <= 5) {
+                    if (orderTotalPages <= 5) {
                       pageNum = i + 1
                     } else if (orderCurrentPage <= 3) {
                       pageNum = i + 1
-                    } else if (orderCurrentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i
+                    } else if (orderCurrentPage >= orderTotalPages - 2) {
+                      pageNum = orderTotalPages - 4 + i
                     } else {
                       pageNum = orderCurrentPage - 2 + i
                     }
@@ -1824,9 +1828,9 @@ export default function DashboardPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={orderCurrentPage === totalPages}
+                  disabled={orderCurrentPage === orderTotalPages}
                   onClick={() => {
-                    if (orderCurrentPage < totalPages) {
+                    if (orderCurrentPage < orderTotalPages) {
                       setOrderCurrentPage(orderCurrentPage + 1)
                     }
                   }}
@@ -4236,14 +4240,14 @@ export default function DashboardPage() {
                   Anterior
                 </Button>
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  {Array.from({ length: Math.min(usersTotalPages, 5) }, (_, i) => {
                     let pageNum
-                    if (totalPages <= 5) {
+                    if (usersTotalPages <= 5) {
                       pageNum = i + 1
                     } else if (usersPaginaActual <= 3) {
                       pageNum = i + 1
-                    } else if (usersPaginaActual >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i
+                    } else if (usersPaginaActual >= usersTotalPages - 2) {
+                      pageNum = usersTotalPages - 4 + i
                     } else {
                       pageNum = usersPaginaActual - 2 + i
                     }
@@ -4264,9 +4268,9 @@ export default function DashboardPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={usersPaginaActual === totalPages}
+                  disabled={usersPaginaActual === usersTotalPages}
                   onClick={() => {
-                    if (usersPaginaActual < totalPages) {
+                    if (usersPaginaActual < usersTotalPages) {
                       setUsersPaginaActual(usersPaginaActual + 1)
                     }
                   }}
