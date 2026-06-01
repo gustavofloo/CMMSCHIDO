@@ -3637,13 +3637,11 @@ export default function DashboardPage() {
               {totalEquipment} registros
             </span>
             <div className="flex items-center gap-2">
-              {console.log("[v0] Equipment pagination UI rendering", { currentPage, totalEquipment, perPage, maxPage: Math.ceil(totalEquipment / perPage) })}
               <Button
                 variant="outline"
                 size="sm"
                 disabled={currentPage === 1}
                 onClick={() => {
-                  console.log("[v0] Anterior button clicked")
                   if (currentPage > 1) {
                     setCurrentPage(currentPage - 1)
                   }
@@ -3651,17 +3649,39 @@ export default function DashboardPage() {
               >
                 Anterior
               </Button>
-              <Button variant="outline" size="sm" className="bg-blue-600 text-white border-blue-600">
-                {currentPage}
-              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(Math.ceil(totalEquipment / perPage), 5) }, (_, i) => {
+                  const totalPages = Math.ceil(totalEquipment / perPage)
+                  let pageNum
+                  if (totalPages <= 5) {
+                    pageNum = i + 1
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i
+                  } else {
+                    pageNum = currentPage - 2 + i
+                  }
+
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={pageNum === currentPage ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={pageNum === currentPage ? "bg-blue-600 text-white" : ""}
+                    >
+                      {pageNum}
+                    </Button>
+                  )
+                })}
+              </div>
               <Button
                 variant="outline"
                 size="sm"
                 disabled={currentPage >= Math.ceil(totalEquipment / perPage) || totalEquipment === 0}
                 onClick={() => {
-                  console.log("[v0] Siguiente button clicked", { currentPage, totalEquipment, perPage, maxPage: Math.ceil(totalEquipment / perPage) })
                   if (currentPage < Math.ceil(totalEquipment / perPage)) {
-                    console.log("[v0] Incrementing page from", currentPage, "to", currentPage + 1)
                     setCurrentPage(currentPage + 1)
                   }
                 }}
