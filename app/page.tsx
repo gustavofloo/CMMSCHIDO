@@ -1463,7 +1463,7 @@ export default function DashboardPage() {
 
   const renderOrdenes = () => {
     const totalRecords = filteredOrders.length
-    const totalPages = Math.ceil(totalRecords / orderPerPage)
+    const totalPages = totalRecords === 0 ? 1 : Math.ceil(totalRecords / orderPerPage)
     const startIndex = (orderCurrentPage - 1) * orderPerPage
     const endIndex = Math.min(startIndex + orderPerPage, totalRecords)
     const paginatedOrders = filteredOrders.slice(startIndex, endIndex)
@@ -3654,7 +3654,7 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentPage === 1 || equipmentLoading}
+                disabled={currentPage === 1}
                 onClick={() => setCurrentPage(currentPage - 1)}
               >
                 Anterior
@@ -3665,7 +3665,7 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={currentPage * perPage >= totalEquipment || equipmentLoading}
+                disabled={currentPage >= Math.ceil(totalEquipment / perPage) || totalEquipment === 0}
                 onClick={() => setCurrentPage(currentPage + 1)}
               >
                 Siguiente
@@ -3930,7 +3930,7 @@ export default function DashboardPage() {
 
     // Calculate pagination values
     const totalUsers = filteredUsers.length
-    const totalPages = Math.ceil(totalUsers / usersPerPage)
+    const totalPages = totalUsers === 0 ? 1 : Math.ceil(totalUsers / usersPerPage)
     const startIndex = (usersPaginaActual - 1) * usersPerPage
     const endIndex = Math.min(startIndex + usersPerPage, totalUsers)
     const paginatedUsers = filteredUsers.slice(startIndex, endIndex)
@@ -5770,7 +5770,7 @@ export default function DashboardPage() {
   )
 
       // Don't filter again on client - already filtered on server by fetchAuditLogs
-      const totalPagesLogs = Math.ceil(auditLogs.length / logsPerPage)
+      const totalPagesLogs = auditLogs.length === 0 ? 1 : Math.ceil(auditLogs.length / logsPerPage)
       const paginatedLogs = auditLogs.slice((logCurrentPage - 1) * logsPerPage, logCurrentPage * logsPerPage)
 
   const renderAuditoria = () => (
