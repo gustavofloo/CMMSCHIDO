@@ -459,6 +459,7 @@ export default function DashboardPage() {
   const [orderCurrentPage, setOrderCurrentPage] = useState(1) // Renamed to avoid conflict
   const [orderTotalPages, setOrderTotalPages] = useState(1) // Renamed to avoid conflict
   const [orderPerPage, setOrderPerPage] = useState(10) // Renamed to avoid conflict
+  const [orderTotalRecords, setOrderTotalRecords] = useState(0) // Total records across all pages
   const [isLoadingOrders, setIsLoadingOrders] = useState(false) // CHANGE: Add loading state for orders
 
   const [selectedTechnicianId, setSelectedTechnicianId] = useState<number | null>(null)
@@ -691,7 +692,8 @@ export default function DashboardPage() {
       
       setWorkOrders(response.data)
       setOrderTotalPages(response.lastPage) // Use renamed state
-      console.log("[v0] loadWorkOrders - Successfully loaded", response.data?.length ?? 0, "items")
+      setOrderTotalRecords(response.total || 0) // Store total records
+      console.log("[v0] loadWorkOrders - Successfully loaded", response.data?.length ?? 0, "items, total:", response.total)
     } catch (error) {
       console.error("[v0] loadWorkOrders - Error:", error)
       setWorkOrders([])
@@ -1470,24 +1472,19 @@ export default function DashboardPage() {
 
   const filteredOrders = workOrders
 
-  // Sync total pages for orders with current data
+  // Reset to page 1 if current page exceeds total pages
   useEffect(() => {
-    const totalRecords = filteredOrders.length
-    const newTotalPages = totalRecords === 0 ? 1 : Math.ceil(totalRecords / orderPerPage)
-    setOrderTotalPages(newTotalPages)
-    
-    // Reset to page 1 if current page exceeds total pages
-    if (orderCurrentPage > newTotalPages) {
+    if (orderCurrentPage > orderTotalPages) {
       setOrderCurrentPage(1)
     }
-  }, [filteredOrders.length, orderPerPage, orderCurrentPage, setOrderTotalPages, setOrderCurrentPage])
+  }, [orderTotalPages, orderCurrentPage])
 
   const renderOrdenes = () => {
-    const totalRecords = filteredOrders.length
-    const totalPages = totalRecords === 0 ? 1 : Math.ceil(totalRecords / orderPerPage)
-    const startIndex = (orderCurrentPage - 1) * orderPerPage
-    const endIndex = Math.min(startIndex + orderPerPage, totalRecords)
-    const paginatedOrders = filteredOrders.slice(startIndex, endIndex)
+    // Data is already paginated from the server
+    const paginatedOrders = filteredOrders
+    const totalRecords = orderTotalRecords
+    const startIndex = (orderCurrentPage - 1) * orderPerPage + 1
+    const endIndex = startIndex + Math.min(filteredOrders.length, orderPerPage) - 1
 
     return (
       <div className="flex flex-col gap-6">
