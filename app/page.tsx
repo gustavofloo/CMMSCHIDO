@@ -3672,11 +3672,13 @@ export default function DashboardPage() {
               {totalEquipment} registros
             </span>
             <div className="flex items-center gap-2">
+              {console.log("[v0] Equipment pagination UI rendering", { currentPage, totalEquipment, perPage, maxPage: Math.ceil(totalEquipment / perPage) })}
               <Button
                 variant="outline"
                 size="sm"
                 disabled={currentPage === 1}
                 onClick={() => {
+                  console.log("[v0] Anterior button clicked")
                   if (currentPage > 1) {
                     setCurrentPage(currentPage - 1)
                   }
