@@ -172,8 +172,8 @@ model Documento {
   contenido_archivo Bytes?   @db.LongBlob
   tipo_archivo      String   @db.VarChar(50)
   tamano            Int
-  equipo_id         Int?
-  orden_id          Int?
+  id_equipo         Int?     @map("id_equipo")
+  id_orden          Int?     @map("id_orden")
   subido_por        Int
   almacenado_en_bd  Boolean  @default(false)
   estado            String   @default("activo") @db.VarChar(50)
@@ -181,13 +181,13 @@ model Documento {
   updated_at        DateTime @updatedAt
 
   // Relaciones
-  equipo            Equipo? @relation(fields: [equipo_id], references: [id], onDelete: Cascade)
-  orden             OrdenTrabajo? @relation(fields: [orden_id], references: [id], onDelete: Cascade)
+  equipo            Equipo? @relation(fields: [id_equipo], references: [id], onDelete: Cascade)
+  orden             OrdenTrabajo? @relation(fields: [id_orden], references: [id], onDelete: Cascade)
   usuario           Usuario @relation(fields: [subido_por], references: [id])
   auditoria         AuditoriaDocumento[]
 
-  @@index([equipo_id])
-  @@index([orden_id])
+  @@index([id_equipo])
+  @@index([id_orden])
   @@index([tipo])
   @@index([subido_por])
   @@index([estado])
